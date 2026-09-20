@@ -1,29 +1,472 @@
 <!DOCTYPE html>
 <html>
   <head>
-    <title><%= content_for(:title) || "Airbnb" %></title>
+    <title>Airbnb: Vacation Rentals, Cabins, Beach Houses, Unique Homes & Experiences</title>
+
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="application-name" content="Airbnb">
     <meta name="mobile-web-app-capable" content="yes">
+
     <%= csrf_meta_tags %>
     <%= csp_meta_tag %>
 
     <%= yield :head %>
 
-    <%# Enable PWA manifest for installable apps (make sure to enable in config/routes.rb too!) %>
+    <%# Enable PWA manifest for installable apps %>
     <%#= tag.link rel: "manifest", href: pwa_manifest_path(format: :json) %>
 
     <link rel="icon" href="/icon.png" type="image/png">
     <link rel="icon" href="/icon.svg" type="image/svg+xml">
     <link rel="apple-touch-icon" href="/icon.png">
 
-    <%# Includes all stylesheet files in app/assets/stylesheets %>
     <%= stylesheet_link_tag :app, "data-turbo-track": "reload" %>
     <%= javascript_importmap_tags %>
   </head>
 
-  <body>
+
+  <body
+    class="bg-white text-gray-900"
+    data-controller="auth-modal"
+  >
+
+    <!-- Flash messages -->
+    <p class="alert"><%= alert %></p>
+
+
+    <!-- ========================= -->
+    <!-- Navbar -->
+    <!-- ========================= -->
+
+    <header class="border-b border-gray-200">
+
+      <!-- Top navigation -->
+      <div class="mx-auto flex h-20 max-w-7xl items-center justify-between px-6">
+
+        <!-- Logo -->
+        <div class="flex items-center">
+          <span class="text-3xl font-bold tracking-tight text-rose-500">
+            airbnb
+          </span>
+        </div>
+
+
+        <!-- Categories -->
+        <nav class="hidden items-center gap-10 md:flex">
+
+          <a
+            href="#"
+            class="flex flex-col items-center gap-1 text-sm font-medium"
+          >
+            <span class="text-2xl">🌍</span>
+            <span>All</span>
+          </a>
+
+          <a
+            href="#"
+            class="flex flex-col items-center gap-1 text-sm text-gray-500 hover:text-gray-900"
+          >
+            <span class="text-2xl">🏠</span>
+            <span>Homes</span>
+          </a>
+
+          <a
+            href="#"
+            class="flex flex-col items-center gap-1 text-sm text-gray-500 hover:text-gray-900"
+          >
+            <span class="text-2xl">🎈</span>
+            <span>Experiences</span>
+          </a>
+
+          <a
+            href="#"
+            class="flex flex-col items-center gap-1 text-sm text-gray-500 hover:text-gray-900"
+          >
+            <span class="text-2xl">🔔</span>
+            <span>Services</span>
+          </a>
+
+        </nav>
+
+
+        <!-- Right side -->
+        <div class="flex items-center gap-3">
+
+          <!-- Become a host -->
+          <% unless user_signed_in? %>
+
+            <button
+              type="button"
+              data-action="click->auth-modal#openLogin"
+              class="hidden rounded-full px-4 py-3 text-sm font-medium hover:bg-gray-100 md:block"
+            >
+              Become a host
+            </button>
+
+          <% end %>
+
+
+          <!-- Authentication -->
+          <% if user_signed_in? %>
+
+            <!-- Logged-in user -->
+            <span class="hidden text-sm md:block">
+              <%= current_user.email %>
+            </span>
+
+
+            <!-- Logout -->
+            <%= link_to "Logout",
+                destroy_user_session_path,
+                data: { turbo_method: :delete },
+                class: "rounded-full px-4 py-3 text-sm font-medium hover:bg-gray-100" %>
+
+          <% else %>
+
+            <!-- Login -->
+            <button
+              type="button"
+              data-action="click->auth-modal#openLogin"
+              class="rounded-full px-4 py-3 text-sm font-medium hover:bg-gray-100"
+            >
+              Login
+            </button>
+
+
+            <!-- Sign up -->
+            <button
+              type="button"
+              data-action="click->auth-modal#openSignup"
+              class="rounded-full bg-gray-900 px-4 py-3 text-sm font-medium text-white hover:bg-gray-700"
+            >
+              Sign up
+            </button>
+
+          <% end %>
+
+
+          <!-- Language -->
+          <button
+            type="button"
+            class="flex h-10 w-10 items-center justify-center rounded-full hover:bg-gray-100"
+          >
+            🌐
+          </button>
+
+
+          <!-- Menu -->
+          <button
+            type="button"
+            class="flex h-10 w-10 items-center justify-center rounded-full bg-gray-100"
+          >
+            ☰
+          </button>
+
+        </div>
+
+      </div>
+
+
+      <!-- ========================= -->
+      <!-- Search bar -->
+      <!-- ========================= -->
+
+      <div class="mx-auto max-w-4xl px-6 pb-6">
+
+        <div class="flex items-center rounded-full border border-gray-200 bg-white shadow-lg">
+
+          <!-- Where -->
+          <div class="flex-1 border-r border-gray-200 px-8 py-4">
+            <p class="text-xs font-semibold">
+              Where
+            </p>
+
+            <p class="text-sm text-gray-500">
+              Search destinations
+            </p>
+          </div>
+
+
+          <!-- When -->
+          <div class="flex-1 border-r border-gray-200 px-8 py-4">
+            <p class="text-xs font-semibold">
+              When
+            </p>
+
+            <p class="text-sm text-gray-500">
+              Add dates
+            </p>
+          </div>
+
+
+          <!-- Who -->
+          <div class="flex-1 px-8 py-4">
+            <p class="text-xs font-semibold">
+              Who
+            </p>
+
+            <p class="text-sm text-gray-500">
+              Add guests
+            </p>
+          </div>
+
+
+          <!-- Search -->
+          <button
+            type="button"
+            class="mr-2 flex h-12 w-12 items-center justify-center rounded-full bg-rose-500 text-white"
+          >
+            🔍
+          </button>
+
+        </div>
+
+      </div>
+
+    </header>
+
+
+    <!-- ========================= -->
+    <!-- Page content -->
+    <!-- ========================= -->
+
+    <main>
       <%= yield %>
+    </main>
+
+
+    <!-- ================================= -->
+    <!-- Authentication Popup -->
+    <!-- ================================= -->
+
+    <% unless user_signed_in? %>
+
+      <div
+        data-auth-modal-target="modal"
+        data-action="click->auth-modal#closeOutside"
+        class="fixed inset-0 z-50 hidden items-center justify-center bg-black/50 px-4"
+      >
+
+        <!-- Popup -->
+        <div
+          class="relative w-full max-w-md rounded-3xl bg-white p-8 shadow-2xl"
+        >
+
+          <!-- Close -->
+          <button
+            type="button"
+            data-action="click->auth-modal#close"
+            class="absolute right-5 top-5 flex h-8 w-8 items-center justify-center rounded-full text-2xl text-gray-500 hover:bg-gray-100 hover:text-gray-900"
+          >
+            ×
+          </button>
+
+
+          <!-- ================================= -->
+          <!-- LOGIN FORM -->
+          <!-- ================================= -->
+
+          <div data-auth-modal-target="loginForm">
+
+            <!-- Heading -->
+            <div class="mb-8 text-center">
+
+              <div class="mb-4 text-4xl">
+                🏠
+              </div>
+
+              <h2 class="text-2xl font-semibold text-gray-900">
+                Log in
+              </h2>
+
+              <p class="mt-2 text-sm text-gray-500">
+                Welcome back to Airbnb
+              </p>
+
+            </div>
+
+
+            <!-- Devise login form -->
+            <%= form_with url: user_session_path,
+                          method: :post,
+                          local: true do |f| %>
+
+              <!-- Email -->
+              <div class="mb-4">
+
+                <%= f.label :email,
+                    "Email",
+                    class: "mb-2 block text-sm font-medium text-gray-700" %>
+
+                <%= f.email_field :email,
+                    name: "user[email]",
+                    placeholder: "Email address",
+                    autocomplete: "email",
+                    required: true,
+                    class: "w-full rounded-xl border border-gray-300 px-4 py-3 outline-none transition focus:border-gray-900 focus:ring-2 focus:ring-gray-200" %>
+
+              </div>
+
+
+              <!-- Password -->
+              <div class="mb-6">
+
+                <%= f.label :password,
+                    "Password",
+                    class: "mb-2 block text-sm font-medium text-gray-700" %>
+
+                <%= f.password_field :password,
+                    name: "user[password]",
+                    placeholder: "Password",
+                    autocomplete: "current-password",
+                    required: true,
+                    class: "w-full rounded-xl border border-gray-300 px-4 py-3 outline-none transition focus:border-gray-900 focus:ring-2 focus:ring-gray-200" %>
+
+              </div>
+
+
+              <!-- Continue -->
+              <%= f.submit "Continue",
+                  class: "w-full cursor-pointer rounded-xl bg-rose-500 px-4 py-3 font-semibold text-white transition hover:bg-rose-600" %>
+
+            <% end %>
+
+
+            <!-- Switch to signup -->
+            <div class="mt-6 border-t border-gray-200 pt-6 text-center text-sm">
+
+              <span class="text-gray-500">
+                Don't have an account?
+              </span>
+
+              <button
+                type="button"
+                data-action="click->auth-modal#showSignup"
+                class="font-semibold text-gray-900 underline hover:text-rose-500"
+              >
+                Sign up
+              </button>
+
+            </div>
+
+          </div>
+
+
+          <!-- ================================= -->
+          <!-- SIGNUP FORM -->
+          <!-- ================================= -->
+
+          <div
+            data-auth-modal-target="signupForm"
+            class="hidden"
+          >
+
+            <!-- Heading -->
+            <div class="mb-8 text-center">
+
+              <div class="mb-4 text-4xl">
+                🏠
+              </div>
+
+              <h2 class="text-2xl font-semibold text-gray-900">
+                Sign up
+              </h2>
+
+              <p class="mt-2 text-sm text-gray-500">
+                Create your Airbnb account
+              </p>
+
+            </div>
+
+
+            <!-- Devise signup form -->
+            <%= form_with url: user_registration_path,
+                          method: :post,
+                          local: true do |f| %>
+
+              <!-- Email -->
+              <div class="mb-4">
+
+                <%= f.label :email,
+                    "Email",
+                    class: "mb-2 block text-sm font-medium text-gray-700" %>
+
+                <%= f.email_field :email,
+                    name: "user[email]",
+                    placeholder: "Email address",
+                    autocomplete: "email",
+                    required: true,
+                    class: "w-full rounded-xl border border-gray-300 px-4 py-3 outline-none transition focus:border-gray-900 focus:ring-2 focus:ring-gray-200" %>
+
+              </div>
+
+
+              <!-- Password -->
+              <div class="mb-4">
+
+                <%= f.label :password,
+                    "Password",
+                    class: "mb-2 block text-sm font-medium text-gray-700" %>
+
+                <%= f.password_field :password,
+                    name: "user[password]",
+                    placeholder: "Password",
+                    autocomplete: "new-password",
+                    required: true,
+                    class: "w-full rounded-xl border border-gray-300 px-4 py-3 outline-none transition focus:border-gray-900 focus:ring-2 focus:ring-gray-200" %>
+
+              </div>
+
+
+              <!-- Password confirmation -->
+              <div class="mb-6">
+
+                <%= f.label :password_confirmation,
+                    "Confirm password",
+                    class: "mb-2 block text-sm font-medium text-gray-700" %>
+
+                <%= f.password_field :password_confirmation,
+                    name: "user[password_confirmation]",
+                    placeholder: "Confirm password",
+                    autocomplete: "new-password",
+                    required: true,
+                    class: "w-full rounded-xl border border-gray-300 px-4 py-3 outline-none transition focus:border-gray-900 focus:ring-2 focus:ring-gray-200" %>
+
+              </div>
+
+
+              <!-- Sign up -->
+              <%= f.submit "Sign up",
+                  class: "w-full cursor-pointer rounded-xl bg-rose-500 px-4 py-3 font-semibold text-white transition hover:bg-rose-600" %>
+
+            <% end %>
+
+
+            <!-- Switch to login -->
+            <div class="mt-6 border-t border-gray-200 pt-6 text-center text-sm">
+
+              <span class="text-gray-500">
+                Already have an account?
+              </span>
+
+              <button
+                type="button"
+                data-action="click->auth-modal#showLogin"
+                class="font-semibold text-gray-900 underline hover:text-rose-500"
+              >
+                Log in
+              </button>
+
+            </div>
+
+          </div>
+
+        </div>
+
+      </div>
+
+    <% end %>
+
+
   </body>
 </html>
